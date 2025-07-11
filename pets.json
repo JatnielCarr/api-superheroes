@@ -1,14 +1,1 @@
-[
-  {
-    "id": 1,
-    "name": "Krypto",
-    "type": "Perro",
-    "ownerId": 2
-  },
-  {
-    "id": 2,
-    "name": "Bolita",
-    "type": "Gato",
-    "ownerId": null
-  }
-] 
+[{"id":1,"name":"Krypto","type":"Perro","ownerId":2},{"id":2,"name":"Bolita","type":"Gato","ownerId":null},{"id":3,"name":"Krypto","type":"Perro","ownerId":1}]
