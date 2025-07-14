@@ -368,6 +368,43 @@ router.get('/mascotas/:id/estado', async (req, res) => {
 
 /**
  * @swagger
+ * /mascotas/{id}/curar:
+ *   post:
+ *     summary: Cura a la mascota con el ID especificado
+ *     tags: [Mascotas]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID de la mascota
+ *     responses:
+ *       200:
+ *         description: Mascota curada con éxito
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mensaje:
+ *                   type: string
+ *                 estado:
+ *                   type: string
+ *       404:
+ *         description: Mascota no encontrada
+ */
+router.post('/mascotas/:id/curar', async (req, res) => {
+    try {
+        const pet = await petService.curarPet(req.params.id);
+        res.json({ mensaje: 'Mascota curada con éxito', estado: pet.estado });
+    } catch (error) {
+        res.status(404).json({ error: error.message });
+    }
+});
+
+/**
+ * @swagger
  * components:
  *   schemas:
  *     Pet:

@@ -1,5 +1,1 @@
-[
-  {"id":1,"name":"Krypto","type":"Perro","ownerId":2,"estado":"normal"},
-  {"id":2,"name":"Bolita","type":"Gato","ownerId":null,"estado":"normal"},
-  {"id":3,"name":"Krypto","type":"Perro","ownerId":1,"estado":"normal"}
-]
+[{"id":1,"name":"Krypto","type":"Perro","ownerId":2,"estado":"normal"},{"id":2,"name":"Bolita","type":"Gato","ownerId":1,"estado":"normal"},{"id":4,"name":"Chimuelo","type":"Dragon","ownerId":1,"estado":"normal"}]
