@@ -9,135 +9,97 @@ async function addPet(pet) {
     if (!pet.name || !pet.type) {
         throw new Error("La mascota debe tener nombre y tipo.");
     }
-    const pets = await petRepository.getPets();
-    const newId = pets.length > 0 ? Math.max(...pets.map(p => p.id)) + 1 : 1;
-    const newPet = { ...pet, id: newId, estado: 'normal' };
-    pets.push(newPet);
-    await petRepository.savePets(pets);
-    return newPet;
+    return await petRepository.savePet({ ...pet, estado: 'normal' });
 }
 
 async function updatePet(id, updatedPet) {
-    const pets = await petRepository.getPets();
-    const index = pets.findIndex(pet => pet.id === parseInt(id));
-    if (index === -1) {
+    const pet = await Pet.findByIdAndUpdate(id, updatedPet, { new: true });
+    if (!pet) {
         throw new Error('Mascota no encontrada');
     }
-    delete updatedPet.id;
-    pets[index] = { ...pets[index], ...updatedPet };
-    await petRepository.savePets(pets);
-    return pets[index];
+    return pet;
 }
 
 async function deletePet(id) {
-    const pets = await petRepository.getPets();
-    const index = pets.findIndex(pet => pet.id === parseInt(id));
-    if (index === -1) {
+    const result = await Pet.findByIdAndDelete(id);
+    if (!result) {
         throw new Error('Mascota no encontrada');
     }
-    const filteredPets = pets.filter(pet => pet.id !== parseInt(id));
-    await petRepository.savePets(filteredPets);
     return { message: 'Mascota eliminada' };
 }
 
 async function assignOwner(petId, ownerId) {
-    const pets = await petRepository.getPets();
-    const index = pets.findIndex(pet => pet.id === parseInt(petId));
-    if (index === -1) {
+    const pet = await Pet.findByIdAndUpdate(petId, { ownerId }, { new: true });
+    if (!pet) {
         throw new Error('Mascota no encontrada');
     }
-    pets[index].ownerId = ownerId;
-    await petRepository.savePets(pets);
-    return pets[index];
+    return pet;
 }
 
 // --- NUEVAS FUNCIONES DE CUIDADO ---
 async function alimentarPet(id) {
-    const pets = await petRepository.getPets();
-    const index = pets.findIndex(pet => pet.id === parseInt(id));
-    if (index === -1) {
-        throw new Error('Mascota no encontrada');
-    }
-    // Si está enferma o deprimida, alimentarla no cambia el estado
-    if (pets[index].estado === 'enferma' || pets[index].estado === 'deprimida') {
+    const pet = await Pet.findById(id);
+    if (!pet) throw new Error('Mascota no encontrada');
+    if (pet.estado === 'enferma' || pet.estado === 'deprimida') {
         // No cambia el estado
-    } else if (pets[index].estado === 'hambriento') {
-        pets[index].estado = 'normal';
+    } else if (pet.estado === 'hambriento') {
+        pet.estado = 'normal';
     } else {
-        pets[index].estado = 'alimentada';
+        pet.estado = 'alimentada';
     }
-    await petRepository.savePets(pets);
-    return pets[index];
+    await pet.save();
+    return pet;
 }
 
 async function banarPet(id) {
-    const pets = await petRepository.getPets();
-    const index = pets.findIndex(pet => pet.id === parseInt(id));
-    if (index === -1) {
-        throw new Error('Mascota no encontrada');
-    }
-    // Si está enferma, bañarla no cambia el estado
-    if (pets[index].estado === 'enferma') {
+    const pet = await Pet.findById(id);
+    if (!pet) throw new Error('Mascota no encontrada');
+    if (pet.estado === 'enferma') {
         // No cambia el estado
     } else {
-        pets[index].estado = 'bañada';
+        pet.estado = 'bañada';
     }
-    await petRepository.savePets(pets);
-    return pets[index];
+    await pet.save();
+    return pet;
 }
 
 async function pasearPet(id) {
-    const pets = await petRepository.getPets();
-    const index = pets.findIndex(pet => pet.id === parseInt(id));
-    if (index === -1) {
-        throw new Error('Mascota no encontrada');
-    }
-    // Si está enferma, pasear no cambia el estado
-    if (pets[index].estado === 'enferma') {
+    const pet = await Pet.findById(id);
+    if (!pet) throw new Error('Mascota no encontrada');
+    if (pet.estado === 'enferma') {
         // No cambia el estado
     } else {
-        pets[index].estado = 'feliz';
+        pet.estado = 'feliz';
     }
-    await petRepository.savePets(pets);
-    return pets[index];
+    await pet.save();
+    return pet;
 }
 
 async function jugarPet(id) {
-    const pets = await petRepository.getPets();
-    const index = pets.findIndex(pet => pet.id === parseInt(id));
-    if (index === -1) {
-        throw new Error('Mascota no encontrada');
-    }
-    // Si está enferma, jugar no cambia el estado
-    if (pets[index].estado === 'enferma') {
+    const pet = await Pet.findById(id);
+    if (!pet) throw new Error('Mascota no encontrada');
+    if (pet.estado === 'enferma') {
         // No cambia el estado
     } else {
-        pets[index].estado = 'feliz';
+        pet.estado = 'feliz';
     }
-    await petRepository.savePets(pets);
-    return pets[index];
+    await pet.save();
+    return pet;
 }
 
 async function curarPet(id) {
-    const pets = await petRepository.getPets();
-    const index = pets.findIndex(pet => pet.id === parseInt(id));
-    if (index === -1) {
-        throw new Error('Mascota no encontrada');
+    const pet = await Pet.findById(id);
+    if (!pet) throw new Error('Mascota no encontrada');
+    if (pet.estado === 'enferma') {
+        pet.estado = 'normal';
     }
-    // Solo puede curarse si está enferma
-    if (pets[index].estado === 'enferma') {
-        pets[index].estado = 'normal';
-    }
-    await petRepository.savePets(pets);
-    return pets[index];
+    await pet.save();
+    return pet;
 }
 
-// Lógica para cambiar el estado aleatoriamente
 function cambiarEstadoAleatorio(pet) {
-    // Solo cambiar si está en estado normal
     if (pet.estado === 'normal') {
         const estados = ['normal', 'enferma', 'deprimida', 'feliz', 'hambriento', 'aburrido'];
-        // Probabilidad: 35% normal, 25% enferma, 10% deprimida, 8% feliz, 12% hambriento, 10% aburrido
         const rand = Math.random();
         if (rand < 0.25) {
             pet.estado = 'enferma';
@@ -153,7 +115,6 @@ function cambiarEstadoAleatorio(pet) {
             pet.estado = 'normal';
         }
     } else if (pet.estado === 'feliz') {
-        // Si está feliz, después de consultar puede volver a normal
         if (Math.random() < 0.5) {
             pet.estado = 'normal';
         }
@@ -162,22 +123,16 @@ function cambiarEstadoAleatorio(pet) {
 }
 
 async function getEstadoPet(id) {
-    const pets = await petRepository.getPets();
-    const index = pets.findIndex(pet => pet.id === parseInt(id));
-    if (index === -1) {
-        throw new Error('Mascota no encontrada');
-    }
-    // Cambiar estado aleatoriamente al consultar
-    let pet = cambiarEstadoAleatorio(pets[index]);
-    // Validar estado
+    const pet = await Pet.findById(id);
+    if (!pet) throw new Error('Mascota no encontrada');
+    let petMod = cambiarEstadoAleatorio(pet);
     const estadosValidos = ['normal', 'enferma', 'deprimida', 'feliz', 'hambriento', 'aburrido'];
-    if (!estadosValidos.includes(pet.estado)) {
-        pet.estado = 'normal';
+    if (!estadosValidos.includes(petMod.estado)) {
+        petMod.estado = 'normal';
     }
-    await petRepository.savePets(pets);
-    // Mensaje descriptivo según el estado
+    await petMod.save();
     let descripcion = '';
-    switch (pet.estado) {
+    switch (petMod.estado) {
         case 'normal':
             descripcion = 'La mascota está tranquila.';
             break;
@@ -197,7 +152,7 @@ async function getEstadoPet(id) {
             descripcion = 'La mascota está aburrida.';
             break;
     }
-    return { estado: pet.estado, descripcion };
+    return { estado: petMod.estado, descripcion };
 }
 
 export default {

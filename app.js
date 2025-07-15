@@ -3,6 +3,8 @@ import heroController from './controllers/heroControllers.js';
 import petController from './controllers/petControllers.js';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJSDoc from 'swagger-jsdoc';
+import 'dotenv/config';
+import connectDB from './db.js';
 
 const app = express();
 
@@ -35,6 +37,9 @@ const swaggerSpec = swaggerJSDoc(options);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 const PORT = 3001;
-app.listen(PORT, () => {
+
+connectDB().then(() => {
+  app.listen(PORT, () => {
     console.log(`Servidor corriendo en el puerto ${PORT}`);
+  });
 });
