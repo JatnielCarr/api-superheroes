@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const petSchema = new mongoose.Schema({
     name: { type: String, required: true },
@@ -9,4 +9,4 @@ const petSchema = new mongoose.Schema({
 
 const Pet = mongoose.model('Pet', petSchema);
 
-export default Pet; 
+module.exports = Pet; 

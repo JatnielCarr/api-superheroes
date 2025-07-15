@@ -72,6 +72,34 @@ api-superheroes/
 - `PUT /api/heroes/:id` - Actualizar un superhéroe
 - `DELETE /api/heroes/:id` - Eliminar un superhéroe
 
+### Mascotas
+
+- `GET /api/pets` - Obtener todas las mascotas
+- `POST /api/pets` - Crear una nueva mascota
+- `PUT /api/pets/:id` - Actualizar una mascota
+- `DELETE /api/pets/:id` - Eliminar una mascota
+- `PUT /api/pets/:id/owner` - Asignar un dueño a la mascota
+
+#### Endpoints de cuidado y estado de mascotas
+
+- `POST /api/mascotas/:id/alimentar` - Alimenta a la mascota. Si tiene hambre, pasa a estado "normal".
+- `POST /api/mascotas/:id/banar` - Baña a la mascota.
+- `POST /api/mascotas/:id/pasear` - Saca a pasear a la mascota. Si no está enferma, pasa a estado "feliz".
+- `POST /api/mascotas/:id/jugar` - Juega con la mascota. Si no está enferma, pasa a estado "feliz".
+- `POST /api/mascotas/:id/curar` - Cura a la mascota si está enferma (pasa a "normal").
+- `GET /api/mascotas/:id/estado` - Consulta el estado actual de la mascota y una descripción amigable.
+
+#### Estados posibles de la mascota
+
+- `normal`: La mascota está tranquila.
+- `feliz`: La mascota está alegre (puede lograrse jugando o paseando).
+- `enferma`: La mascota está enferma y necesita ser curada.
+- `deprimida`: La mascota está triste.
+- `hambriento`: La mascota tiene hambre y debe ser alimentada.
+- `aburrido`: La mascota está aburrida y debe jugar.
+
+> **Nota:** Los estados pueden cambiar aleatoriamente al consultar el estado de la mascota. Si está aburrida y juegas con ella, se pone feliz. Si tiene hambre y la alimentas, pasa a normal. Si paseas o juegas con la mascota, se pone feliz (a menos que esté enferma).
+
 ## 📝 Ejemplo de Uso
 
 ### Crear un superhéroe
@@ -88,6 +116,48 @@ curl -X POST http://localhost:3000/api/heroes \
 ### Obtener todos los superhéroes
 ```bash
 curl http://localhost:3000/api/heroes
+```
+
+### Crear una mascota
+```bash
+curl -X POST http://localhost:3001/api/pets \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Krypto",
+    "type": "Perro"
+  }'
+```
+
+### Consultar el estado de una mascota
+```bash
+curl http://localhost:3001/api/mascotas/1/estado
+```
+Respuesta ejemplo:
+```json
+{
+  "estado": "feliz",
+  "descripcion": "¡La mascota está feliz!"
+}
+```
+
+### Alimentar a una mascota
+```bash
+curl -X POST http://localhost:3001/api/mascotas/1/alimentar
+```
+
+### Jugar con una mascota
+```bash
+curl -X POST http://localhost:3001/api/mascotas/1/jugar
+```
+
+### Pasear a una mascota
+```bash
+curl -X POST http://localhost:3001/api/mascotas/1/pasear
+```
+
+### Curar a una mascota
+```bash
+curl -X POST http://localhost:3001/api/mascotas/1/curar
 ```
 
 ## 🤝 Contribuir

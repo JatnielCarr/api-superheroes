@@ -8,45 +8,35 @@ async function addHero(hero) {
     if (!hero.name || !hero.alias) {
         throw new Error("El héroe debe tener un nombre y un alias.");
     }
-    const heroes = await heroRepository.getHeroes();
-    const newId = heroes.length > 0 ? Math.max(...heroes.map(h => h.id)) + 1 : 1;
-    const newHero = { ...hero, id: newId };
-    heroes.push(newHero);
-    await heroRepository.saveHeroes(heroes);
-    return newHero;
+    return await heroRepository.saveHero(hero);
 }
 
 async function updateHero(id, updatedHero) {
-    const heroes = await heroRepository.getHeroes();
-    const index = heroes.findIndex(hero => hero.id === parseInt(id));
-    if (index === -1) {
+    const Hero = (await import('../models/heroModel.js')).default;
+    const hero = await Hero.findByIdAndUpdate(id, updatedHero, { new: true });
+    if (!hero) {
         throw new Error('Héroe no encontrado');
     }
-    delete updatedHero.id;
-    heroes[index] = { ...heroes[index], ...updatedHero };
-    await heroRepository.saveHeroes(heroes);
-    return heroes[index];
+    return hero;
 }
 
 async function deleteHero(id) {
-    const heroes = await heroRepository.getHeroes();
-    const index = heroes.findIndex(hero => hero.id === parseInt(id));
-    if (index === -1) {
+    const Hero = (await import('../models/heroModel.js')).default;
+    const result = await Hero.findByIdAndDelete(id);
+    if (!result) {
         throw new Error('Héroe no encontrado');
     }
-    const filteredHeroes = heroes.filter(hero => hero.id !== parseInt(id));
-    await heroRepository.saveHeroes(filteredHeroes);
     return { message: 'Héroe eliminado' };
 }
 
 async function findHeroesByCity(city) {
-    const heroes = await heroRepository.getHeroes();
-    return heroes.filter(hero => hero.city && hero.city.toLowerCase() === city.toLowerCase());
+    const Hero = (await import('../models/heroModel.js')).default;
+    return await Hero.find({ city: { $regex: new RegExp(`^${city}$`, 'i') } });
 }
 
 async function faceVillain(heroId, villain) {
-    const heroes = await heroRepository.getHeroes();
-    const hero = heroes.find(hero => hero.id === parseInt(heroId));
+    const Hero = (await import('../models/heroModel.js')).default;
+    const hero = await Hero.findById(heroId);
     if (!hero) {
         throw new Error('Héroe no encontrado');
     }

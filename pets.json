@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 [{"id":1,"name":"Krypto","type":"Perro","ownerId":2,"estado":"alimentada"},{"id":2,"name":"Bolita","type":"Gato","ownerId":null,"estado":"normal"},{"id":3,"name":"Krypto","type":"Perro","ownerId":1,"estado":"normal"}]
+=======
+[{"id":1,"name":"Krypto","type":"Perro","ownerId":2,"estado":"normal"},{"id":2,"name":"Bolita","type":"Gato","ownerId":1,"estado":"normal"},{"id":4,"name":"Chimuelo","type":"Dragon","ownerId":1,"estado":"normal"}]
+>>>>>>> d91576d7915e8f8fe27a16f8fcd9ffe94e0aadb1

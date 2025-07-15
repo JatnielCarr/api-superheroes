@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const heroSchema = new mongoose.Schema({
     name: { type: String, required: true },
@@ -9,4 +9,4 @@ const heroSchema = new mongoose.Schema({
 
 const Hero = mongoose.model('Hero', heroSchema);
 
-export default Hero; 
+module.exports = Hero;
