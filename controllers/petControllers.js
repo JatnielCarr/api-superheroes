@@ -1,16 +1,19 @@
 import express from "express";
 import { check, validationResult } from 'express-validator';
-import petService from "../services/petService.js";
-import Pet from "../models/petModel.js";
+import PetService from "../services/petService.js";
+import authMiddleware from '../middleware/auth.js';
 
 const router = express.Router();
+const petService = new PetService();
 
 /**
  * @swagger
  * /pets:
  *   get:
- *     summary: Obtiene todas las mascotas
+ *     summary: Obtiene todas las mascotas del usuario autenticado
  *     tags: [Mascotas]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Lista de mascotas
@@ -21,9 +24,9 @@ const router = express.Router();
  *               items:
  *                 $ref: '#/components/schemas/Pet'
  */
-router.get("/pets", async (req, res) => {
+router.get("/pets", authMiddleware, async (req, res) => {
     try {
-        const pets = await petService.getAllPets();
+        const pets = await petService.getAllPets(req.user);
         res.json(pets);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -34,14 +37,26 @@ router.get("/pets", async (req, res) => {
  * @swagger
  * /pets:
  *   post:
- *     summary: Crea una nueva mascota
+ *     summary: Agrega una nueva mascota
  *     tags: [Mascotas]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Pet'
+ *             type: object
+ *             required:
+ *               - name
+ *               - type
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "Krypto"
+ *               type:
+ *                 type: string
+ *                 example: "Perro"
  *     responses:
  *       201:
  *         description: Mascota creada
@@ -54,36 +69,37 @@ router.get("/pets", async (req, res) => {
  */
 router.post("/pets",
     [
+        authMiddleware,
         check('name').not().isEmpty().withMessage('El nombre es requerido'),
         check('type').not().isEmpty().withMessage('El tipo es requerido')
-    ],
+    ], 
     async (req, res) => {
         const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ error: errors.array() });
+        if(!errors.isEmpty()){
+            return res.status(400).json({ error : errors.array() });
         }
         try {
-            const { name, type, ownerId } = req.body;
-            const newPet = new Pet(null, name, type, ownerId);
-            const addedPet = await petService.addPet(newPet);
+            const { name, type } = req.body;
+            const addedPet = await petService.addPet({ name, type, ownerId: req.user._id });
             res.status(201).json(addedPet);
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
-    }
-);
+});
 
 /**
  * @swagger
- * /pets/{id}:
+ * /pets/{petId}:
  *   put:
  *     summary: Actualiza una mascota
  *     tags: [Mascotas]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: petId
  *         schema:
- *           type: integer
+ *           type: string
  *         required: true
  *         description: ID de la mascota
  *     requestBody:
@@ -91,7 +107,14 @@ router.post("/pets",
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Pet'
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "Krypto"
+ *               type:
+ *                 type: string
+ *                 example: "Perro"
  *     responses:
  *       200:
  *         description: Mascota actualizada
@@ -102,9 +125,9 @@ router.post("/pets",
  *       404:
  *         description: Mascota no encontrada
  */
-router.put("/pets/:id", async (req, res) => {
+router.put("/pets/:petId", authMiddleware, async (req, res) => {
     try {
-        const updatedPet = await petService.updatePet(req.params.id, req.body);
+        const updatedPet = await petService.updatePet(req.params.petId, req.body, req.user._id);
         res.json(updatedPet);
     } catch (error) {
         res.status(404).json({ error: error.message });
@@ -113,15 +136,17 @@ router.put("/pets/:id", async (req, res) => {
 
 /**
  * @swagger
- * /pets/{id}:
+ * /pets/{petId}:
  *   delete:
  *     summary: Elimina una mascota
  *     tags: [Mascotas]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: petId
  *         schema:
- *           type: integer
+ *           type: string
  *         required: true
  *         description: ID de la mascota
  *     responses:
@@ -130,9 +155,9 @@ router.put("/pets/:id", async (req, res) => {
  *       404:
  *         description: Mascota no encontrada
  */
-router.delete('/pets/:id', async (req, res) => {
+router.delete('/pets/:petId', authMiddleware, async (req, res) => {
     try {
-        const result = await petService.deletePet(req.params.id);
+        const result = await petService.deletePet(req.params.petId, req.user._id);
         res.json(result);
     } catch (error) {
         res.status(404).json({ error: error.message });
@@ -141,59 +166,52 @@ router.delete('/pets/:id', async (req, res) => {
 
 /**
  * @swagger
- * /pets/{id}/owner:
- *   put:
- *     summary: Asigna un dueño (héroe) a la mascota
- *     tags: [Mascotas]
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: integer
- *         required: true
- *         description: ID de la mascota
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               ownerId:
- *                 type: integer
- *                 description: ID del héroe dueño
- *     responses:
- *       200:
- *         description: Mascota actualizada con dueño
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Pet'
- *       404:
- *         description: Mascota no encontrada
+ * components:
+ *   schemas:
+ *     Pet:
+ *       type: object
+ *       required:
+ *         - name
+ *         - type
+ *       properties:
+ *         _id:
+ *           type: string
+ *           description: ID de la mascota
+ *         name:
+ *           type: string
+ *           description: Nombre de la mascota
+ *         type:
+ *           type: string
+ *           description: Tipo de mascota (perro, gato, etc.)
+ *         ownerId:
+ *           type: string
+ *           description: ID del héroe dueño
+ *         estado:
+ *           type: string
+ *           description: Estado de la mascota
+ *       example:
+ *         _id: "64a1b2c3d4e5f6a7b8c9d0e2"
+ *         name: "Krypto"
+ *         type: "Perro"
+ *         ownerId: "64a1b2c3d4e5f6a7b8c9d0e1"
+ *         estado: "normal"
  */
-router.put('/pets/:id/owner', async (req, res) => {
-    try {
-        const { ownerId } = req.body;
-        const updatedPet = await petService.assignOwner(req.params.id, ownerId);
-        res.json(updatedPet);
-    } catch (error) {
-        res.status(404).json({ error: error.message });
-    }
-});
 
-// --- ENDPOINTS DE CUIDADO DE MASCOTAS ---
+// ===================== ENDPOINTS DE CUIDADO DE MASCOTAS =====================
+
 /**
  * @swagger
  * /mascotas/{id}/alimentar:
  *   post:
  *     summary: Alimenta a la mascota con el ID especificado
- *     tags: [Mascotas]
+ *     tags: [CuidadoMascotas]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
  *         schema:
- *           type: integer
+ *           type: string
  *         required: true
  *         description: ID de la mascota
  *     responses:
@@ -211,9 +229,10 @@ router.put('/pets/:id/owner', async (req, res) => {
  *       404:
  *         description: Mascota no encontrada
  */
-router.post('/mascotas/:id/alimentar', async (req, res) => {
+router.post('/mascotas/:id/alimentar', authMiddleware, async (req, res) => {
     try {
-        const pet = await petService.alimentarPet(req.params.id);
+        // Lógica de alimentar (puedes personalizar)
+        const pet = await petService.alimentarPet(req.params.id, req.user._id);
         res.json({ mensaje: 'Mascota alimentada con éxito', estado: pet.estado });
     } catch (error) {
         res.status(404).json({ error: error.message });
@@ -225,12 +244,14 @@ router.post('/mascotas/:id/alimentar', async (req, res) => {
  * /mascotas/{id}/banar:
  *   post:
  *     summary: Baña a la mascota con el ID especificado
- *     tags: [Mascotas]
+ *     tags: [CuidadoMascotas]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
  *         schema:
- *           type: integer
+ *           type: string
  *         required: true
  *         description: ID de la mascota
  *     responses:
@@ -248,9 +269,9 @@ router.post('/mascotas/:id/alimentar', async (req, res) => {
  *       404:
  *         description: Mascota no encontrada
  */
-router.post('/mascotas/:id/banar', async (req, res) => {
+router.post('/mascotas/:id/banar', authMiddleware, async (req, res) => {
     try {
-        const pet = await petService.banarPet(req.params.id);
+        const pet = await petService.banarPet(req.params.id, req.user._id);
         res.json({ mensaje: 'Mascota bañada con éxito', estado: pet.estado });
     } catch (error) {
         res.status(404).json({ error: error.message });
@@ -262,12 +283,14 @@ router.post('/mascotas/:id/banar', async (req, res) => {
  * /mascotas/{id}/pasear:
  *   post:
  *     summary: Saca a pasear a la mascota con el ID especificado
- *     tags: [Mascotas]
+ *     tags: [CuidadoMascotas]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
  *         schema:
- *           type: integer
+ *           type: string
  *         required: true
  *         description: ID de la mascota
  *     responses:
@@ -285,9 +308,9 @@ router.post('/mascotas/:id/banar', async (req, res) => {
  *       404:
  *         description: Mascota no encontrada
  */
-router.post('/mascotas/:id/pasear', async (req, res) => {
+router.post('/mascotas/:id/pasear', authMiddleware, async (req, res) => {
     try {
-        const pet = await petService.pasearPet(req.params.id);
+        const pet = await petService.pasearPet(req.params.id, req.user._id);
         res.json({ mensaje: 'Mascota paseada con éxito', estado: pet.estado });
     } catch (error) {
         res.status(404).json({ error: error.message });
@@ -299,12 +322,14 @@ router.post('/mascotas/:id/pasear', async (req, res) => {
  * /mascotas/{id}/jugar:
  *   post:
  *     summary: Juega con la mascota con el ID especificado
- *     tags: [Mascotas]
+ *     tags: [CuidadoMascotas]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
  *         schema:
- *           type: integer
+ *           type: string
  *         required: true
  *         description: ID de la mascota
  *     responses:
@@ -322,45 +347,10 @@ router.post('/mascotas/:id/pasear', async (req, res) => {
  *       404:
  *         description: Mascota no encontrada
  */
-router.post('/mascotas/:id/jugar', async (req, res) => {
+router.post('/mascotas/:id/jugar', authMiddleware, async (req, res) => {
     try {
-        const pet = await petService.jugarPet(req.params.id);
+        const pet = await petService.jugarPet(req.params.id, req.user._id);
         res.json({ mensaje: 'Mascota jugada con éxito', estado: pet.estado });
-    } catch (error) {
-        res.status(404).json({ error: error.message });
-    }
-});
-
-/**
- * @swagger
- * /mascotas/{id}/estado:
- *   get:
- *     summary: Obtiene el estado actual de la mascota con el ID especificado
- *     tags: [Mascotas]
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: integer
- *         required: true
- *         description: ID de la mascota
- *     responses:
- *       200:
- *         description: Estado actual de la mascota
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 estado:
- *                   type: string
- *       404:
- *         description: Mascota no encontrada
- */
-router.get('/mascotas/:id/estado', async (req, res) => {
-    try {
-        const estado = await petService.getEstadoPet(req.params.id);
-        res.json(estado);
     } catch (error) {
         res.status(404).json({ error: error.message });
     }
@@ -371,12 +361,14 @@ router.get('/mascotas/:id/estado', async (req, res) => {
  * /mascotas/{id}/curar:
  *   post:
  *     summary: Cura a la mascota con el ID especificado
- *     tags: [Mascotas]
+ *     tags: [CuidadoMascotas]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
  *         schema:
- *           type: integer
+ *           type: string
  *         required: true
  *         description: ID de la mascota
  *     responses:
@@ -394,9 +386,9 @@ router.get('/mascotas/:id/estado', async (req, res) => {
  *       404:
  *         description: Mascota no encontrada
  */
-router.post('/mascotas/:id/curar', async (req, res) => {
+router.post('/mascotas/:id/curar', authMiddleware, async (req, res) => {
     try {
-        const pet = await petService.curarPet(req.params.id);
+        const pet = await petService.curarPet(req.params.id, req.user._id);
         res.json({ mensaje: 'Mascota curada con éxito', estado: pet.estado });
     } catch (error) {
         res.status(404).json({ error: error.message });
@@ -405,31 +397,41 @@ router.post('/mascotas/:id/curar', async (req, res) => {
 
 /**
  * @swagger
- * components:
- *   schemas:
- *     Pet:
- *       type: object
- *       required:
- *         - name
- *         - type
- *       properties:
- *         id:
- *           type: integer
- *           description: ID autogenerado
- *         name:
+ * /mascotas/{id}/estado:
+ *   get:
+ *     summary: Obtiene el estado actual de la mascota con el ID especificado
+ *     tags: [CuidadoMascotas]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
  *           type: string
- *           description: Nombre de la mascota
- *         type:
- *           type: string
- *           description: Tipo de mascota (perro, gato, etc.)
- *         ownerId:
- *           type: integer
- *           description: ID del héroe dueño
- *       example:
- *         id: 1
- *         name: Krypto
- *         type: Perro
- *         ownerId: 1
+ *         required: true
+ *         description: ID de la mascota
+ *     responses:
+ *       200:
+ *         description: Estado actual de la mascota
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 estado:
+ *                   type: string
+ *                 descripcion:
+ *                   type: string
+ *       404:
+ *         description: Mascota no encontrada
  */
+router.get('/mascotas/:id/estado', authMiddleware, async (req, res) => {
+    try {
+        const estado = await petService.getEstadoPet(req.params.id, req.user._id);
+        res.json(estado);
+    } catch (error) {
+        res.status(404).json({ error: error.message });
+    }
+});
 
 export default router; 

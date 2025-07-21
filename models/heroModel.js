@@ -1,12 +1,11 @@
 import mongoose from 'mongoose';
 
 const heroSchema = new mongoose.Schema({
-    name: { type: String, required: true },
+    name: { type: String, required: true, unique: true },
     alias: { type: String, required: true },
-    city: { type: String, required: true },
-    team: { type: String, required: true }
+    city: { type: String },
+    team: { type: String },
+    password: { type: String } // Nuevo campo para autenticación
 });
 
-const Hero = mongoose.model('Hero', heroSchema);
-
-export default Hero; 
+export default mongoose.model('Hero', heroSchema, 'heros'); 

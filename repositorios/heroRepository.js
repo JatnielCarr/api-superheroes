@@ -1,40 +1,42 @@
 import Hero from '../models/heroModel.js';
-import fs from 'fs-extra';
 
-const filePath = './superheroes.json';
+class HeroRepository {
+    async getHeroes(filter = {}) {
+        try {
+            return await Hero.find(filter).populate('pets');
+        } catch (error) {
+            console.error(error);
+            return [];
+        }
+    }
 
-// Obtener todos los héroes desde MongoDB
-async function getHeroes() {
-    try {
-        return await Hero.find();
-    } catch (error) {
-        console.error(error);
-        return [];
+    async getHeroById(id) {
+        try {
+            if (id.length === 8) {
+                const all = await Hero.find().populate('pets');
+                return all.find(h => h._id.toString().substring(0,8) === id);
+            } else {
+                return await Hero.findById(id).populate('pets');
+            }
+        } catch (error) {
+            console.error(error);
+            return null;
+        }
+    }
+
+    async saveHero(heroData) {
+        try {
+            if (heroData._id) {
+                return await Hero.findByIdAndUpdate(heroData._id, heroData, { new: true });
+            } else {
+                const hero = new Hero(heroData);
+                return await hero.save();
+            }
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
     }
 }
 
-// Guardar un héroe en MongoDB
-async function saveHero(heroData) {
-    try {
-        const hero = new Hero(heroData);
-        return await hero.save();
-    } catch (error) {
-        console.error(error);
-        return null;
-    }
-}
-
-// Guardar todos los héroes en archivo .json (opcional)
-async function saveHeroesToFile(heroes) {
-    try {
-        await fs.writeJson(filePath, heroes);
-    } catch (error) {
-        console.error(error);
-    }
-}
-
-export default {
-    getHeroes,
-    saveHero,
-    saveHeroesToFile
-};
+export default HeroRepository;

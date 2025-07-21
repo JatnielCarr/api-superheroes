@@ -7,6 +7,6 @@ const petSchema = new mongoose.Schema({
     estado: { type: String, default: 'normal' }
 });
 
-const Pet = mongoose.model('Pet', petSchema);
+const Pet = mongoose.model('Pet', petSchema, 'pets');
 
 export default Pet; 

@@ -5,12 +5,14 @@ import swaggerUi from 'swagger-ui-express';
 import swaggerJSDoc from 'swagger-jsdoc';
 import 'dotenv/config';
 import connectDB from './db.js';
+import adminController from './controllers/adminController.js';
+import auth from './middleware/auth.js';
+import bodyParser from 'body-parser';
+import { loginHero } from './controllers/heroControllerAuth.js';
 
 const app = express();
 
-app.use(express.json());
-app.use('/api', heroController);
-app.use('/api', petController);
+app.use(bodyParser.json());
 
 const swaggerDefinition = {
   openapi: '3.0.0',
@@ -25,6 +27,20 @@ const swaggerDefinition = {
       description: 'Servidor local',
     },
   ],
+  components: {
+    securitySchemes: {
+      bearerAuth: {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+      },
+    },
+  },
+  security: [
+    {
+      bearerAuth: [],
+    },
+  ],
 };
 
 const options = {
@@ -35,6 +51,60 @@ const options = {
 const swaggerSpec = swaggerJSDoc(options);
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+/**
+ * @swagger
+ * /login:
+ *   post:
+ *     summary: Autenticación de admin y obtención de token JWT
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Token JWT generado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ */
+/**
+ * @swagger
+ * /verify:
+ *   get:
+ *     summary: Verifica si el token JWT es válido
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Token válido
+ *       401:
+ *         description: Token inválido o expirado
+ */
+// Rutas públicas
+app.post('/api/login', adminController.login);
+app.get('/api/verify', adminController.verify);
+app.post('/api/login-hero', loginHero);
+
+// Proteger todas las rutas siguientes
+app.use(auth);
+
+// Rutas protegidas
+app.use('/api', heroController);
+app.use('/api', petController);
 
 const PORT = 3001;
 

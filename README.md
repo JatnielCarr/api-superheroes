@@ -175,3 +175,32 @@ Este proyecto está bajo la Licencia ISC.
 ## 👨‍💻 Autor
 
 Desarrollado con ❤️ usando Node.js y Express. 
+
+# Autenticación JWT para Admin
+
+## Crear un admin manualmente
+
+1. Abre una terminal Node.js:
+
+```
+node
+```
+
+2. Ejecuta lo siguiente:
+
+```
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
+import Admin from './models/adminModel.js';
+
+await mongoose.connect('TU_MONGO_URI');
+const password = await bcrypt.hash('admin1234', 10);
+await Admin.create({ email: 'admin', password });
+```
+
+## Endpoints
+
+- `POST /login` — Envía `{ "email": "admin", "password": "admin1234" }` y recibe un token.
+- `GET /verify` — Envía el token en el header `Authorization: Bearer TOKEN` para verificar si es válido.
+
+Todos los demás endpoints requieren el token en el header `Authorization`. 

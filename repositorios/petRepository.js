@@ -1,40 +1,37 @@
 import Pet from '../models/petModel.js';
-import fs from 'fs-extra';
 
-const filePath = './pets.json';
+class PetRepository {
+    async getPets(filter = {}) {
+        try {
+            return await Pet.find(filter);
+        } catch (error) {
+            console.error(error);
+            return [];
+        }
+    }
 
-// Obtener todas las mascotas desde MongoDB
-async function getPets() {
-    try {
-        return await Pet.find();
-    } catch (error) {
-        console.error(error);
-        return [];
+    async getPetById(id) {
+        try {
+            return await Pet.findById(id);
+        } catch (error) {
+            console.error(error);
+            return null;
+        }
+    }
+
+    async savePet(petData) {
+        try {
+            if (petData._id) {
+                return await Pet.findByIdAndUpdate(petData._id, petData, { new: true });
+            } else {
+                const pet = new Pet(petData);
+                return await pet.save();
+            }
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
     }
 }
 
-// Guardar una mascota en MongoDB
-async function savePet(petData) {
-    try {
-        const pet = new Pet(petData);
-        return await pet.save();
-    } catch (error) {
-        console.error(error);
-        return null;
-    }
-}
-
-// Guardar todas las mascotas en archivo .json (opcional)
-async function savePetsToFile(pets) {
-    try {
-        await fs.writeJson(filePath, pets);
-    } catch (error) {
-        console.error(error);
-    }
-}
-
-export default {
-    getPets,
-    savePet,
-    savePetsToFile
-}; 
+export default PetRepository; 
