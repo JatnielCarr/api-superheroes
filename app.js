@@ -23,6 +23,10 @@ const swaggerDefinition = {
   },
   servers: [
     {
+      url: 'https://api-superheroes-production-c38b.up.railway.app/api',
+      description: 'Railway Deploy',
+    },
+    {
       url: 'http://localhost:3001/api',
       description: 'Servidor local',
     },
