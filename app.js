@@ -110,7 +110,7 @@ app.post('/api/login-hero', loginHero);
 app.use('/api', heroController);
 app.use('/api', petController);
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
 connectDB().then(() => {
   app.listen(PORT, () => {
