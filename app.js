@@ -56,6 +56,11 @@ const swaggerSpec = swaggerJSDoc(options);
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
+// Ruta de bienvenida para la raíz
+app.get('/', (req, res) => {
+  res.send('API de Superhéroes corriendo 🚀');
+});
+
 /**
  * @swagger
  * /login:
