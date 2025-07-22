@@ -1,7 +1,7 @@
 import express from "express";
 import { check, validationResult } from 'express-validator';
 import HeroService from "../services/heroService.js";
-import authMiddleware from '../middleware/auth.js';
+import authUniversal from '../middleware/authUniversal.js';
 
 const router = express.Router();
 const heroService = new HeroService();
@@ -24,7 +24,7 @@ const heroService = new HeroService();
  *               items:
  *                 $ref: '#/components/schemas/Hero'
  */
-router.get("/heroes", authMiddleware, async (req, res) => {
+router.get("/heroes", authUniversal, async (req, res) => {
     try {
         const heroes = await heroService.getAllHeroes(req.user);
         res.json(heroes);
@@ -59,7 +59,7 @@ router.get("/heroes", authMiddleware, async (req, res) => {
  *               items:
  *                 $ref: '#/components/schemas/Hero'
  */
-router.get('/heroes/city/:city', authMiddleware, async (req, res) => {
+router.get('/heroes/city/:city', authUniversal, async (req, res) => {
     try {
         const heroes = await heroService.findHeroesByCity(req.params.city, req.user._id);
         res.json(heroes);
@@ -94,7 +94,7 @@ router.get('/heroes/city/:city', authMiddleware, async (req, res) => {
  */
 router.post("/heroes",
     [
-        authMiddleware,
+        authUniversal,
         check('name').not().isEmpty().withMessage('El nombre es requerido'),
         check('alias').not().isEmpty().withMessage('El alias es requerido')
     ],
@@ -143,7 +143,7 @@ router.post("/heroes",
  *       404:
  *         description: Héroe no encontrado
  */
-router.put("/heroes/:heroId", authMiddleware, async (req, res) => {
+router.put("/heroes/:heroId", authUniversal, async (req, res) => {
     try {
         const updatedHero = await heroService.updateHero(req.params.heroId, req.body, req.user._id);
         res.json(updatedHero);
@@ -173,7 +173,7 @@ router.put("/heroes/:heroId", authMiddleware, async (req, res) => {
  *       404:
  *         description: Héroe no encontrado
  */
-router.delete('/heroes/:heroId', authMiddleware, async (req, res) => {
+router.delete('/heroes/:heroId', authUniversal, async (req, res) => {
     try {
         const result = await heroService.deleteHero(req.params.heroId, req.user._id);
         res.json(result);
@@ -211,7 +211,7 @@ router.delete('/heroes/:heroId', authMiddleware, async (req, res) => {
  *       404:
  *         description: Héroe no encontrado
  */
-router.post('/heroes/:heroId/enfrentar', authMiddleware, async (req, res) => {
+router.post('/heroes/:heroId/enfrentar', authUniversal, async (req, res) => {
     try {
         const result = await heroService.faceVillain(req.params.heroId, req.body.villain, req.user._id);
         res.json({ message: result });
@@ -247,7 +247,7 @@ router.post('/heroes/:heroId/enfrentar', authMiddleware, async (req, res) => {
  *       404:
  *         description: Héroe no encontrado
  */
-router.get('/heroes/:heroId/pets', authMiddleware, async (req, res) => {
+router.get('/heroes/:heroId/pets', authUniversal, async (req, res) => {
     try {
         const pets = await heroService.getHeroPets(req.params.heroId, req.user._id);
         res.json(pets);

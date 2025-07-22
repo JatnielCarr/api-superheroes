@@ -99,10 +99,10 @@ app.post('/api/login', adminController.login);
 app.get('/api/verify', adminController.verify);
 app.post('/api/login-hero', loginHero);
 
-// Proteger todas las rutas siguientes
-app.use(auth);
+// Quitar el middleware global 'auth' para las rutas de héroes y mascotas
+// app.use(auth); // ELIMINADO
 
-// Rutas protegidas
+// Rutas protegidas (cada router usará su propio middleware)
 app.use('/api', heroController);
 app.use('/api', petController);
 

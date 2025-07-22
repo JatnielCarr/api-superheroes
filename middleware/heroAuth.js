@@ -20,7 +20,7 @@ export default async function heroAuth(req, res, next) {
                 return res.status(403).json({ message: 'Solo puedes acceder a tu propia mascota' });
             }
         }
-        req.hero = decoded;
+        req.user = decoded; // Unificar con admin
         next();
     } catch (err) {
         return res.status(401).json({ message: 'Token inválido o expirado' });

@@ -7,11 +7,11 @@ class PetService {
 
     async getAllPets(user) {
         // Si el usuario es admin, devuelve todas las mascotas
-        if (user.email === 'admin') {
+        if (user.role === 'admin' || user.email === 'admin') {
             return await this.petRepository.getPets({});
         }
         // Si no, solo las del usuario autenticado
-        return await this.petRepository.getPets({ ownerId: user._id });
+        return await this.petRepository.getPets({ ownerId: user._id || user.id });
     }
 
     async addPet(pet) {

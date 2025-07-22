@@ -3,7 +3,7 @@ import Hero from '../models/heroModel.js';
 class HeroRepository {
     async getHeroes(filter = {}) {
         try {
-            return await Hero.find(filter).populate('pets');
+            return await Hero.find(filter);
         } catch (error) {
             console.error(error);
             return [];
@@ -13,10 +13,10 @@ class HeroRepository {
     async getHeroById(id) {
         try {
             if (id.length === 8) {
-                const all = await Hero.find().populate('pets');
+                const all = await Hero.find();
                 return all.find(h => h._id.toString().substring(0,8) === id);
             } else {
-                return await Hero.findById(id).populate('pets');
+                return await Hero.findById(id);
             }
         } catch (error) {
             console.error(error);

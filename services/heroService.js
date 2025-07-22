@@ -10,11 +10,11 @@ class HeroService {
 
     async getAllHeroes(user) {
         // Si el usuario es admin, devuelve todos los héroes
-        if (user.email === 'admin') {
+        if (user.role === 'admin' || user.email === 'admin') {
             return await this.heroRepository.getHeroes({});
         }
         // Si no, solo los del usuario autenticado
-        return await this.heroRepository.getHeroes({ owner: user._id });
+        return await this.heroRepository.getHeroes({ owner: user._id || user.id });
     }
 
     async addHero(hero) {
@@ -43,7 +43,12 @@ class HeroService {
     }
 
     async findHeroesByCity(city, userId) {
-        const heroes = await this.heroRepository.getHeroes({ owner: userId });
+        // Si el usuario es admin, puede ver todos los héroes por ciudad
+        if (userId.role === 'admin' || userId.email === 'admin') {
+            const heroes = await this.heroRepository.getHeroes({});
+            return heroes.filter(hero => hero.city && hero.city.toLowerCase() === city.toLowerCase());
+        }
+        const heroes = await this.heroRepository.getHeroes({ owner: userId._id || userId.id });
         return heroes.filter(hero => hero.city && hero.city.toLowerCase() === city.toLowerCase());
     }
 

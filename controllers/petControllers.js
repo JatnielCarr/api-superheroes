@@ -1,7 +1,7 @@
 import express from "express";
 import { check, validationResult } from 'express-validator';
 import PetService from "../services/petService.js";
-import authMiddleware from '../middleware/auth.js';
+import authUniversal from '../middleware/authUniversal.js';
 
 const router = express.Router();
 const petService = new PetService();
@@ -24,7 +24,7 @@ const petService = new PetService();
  *               items:
  *                 $ref: '#/components/schemas/Pet'
  */
-router.get("/pets", authMiddleware, async (req, res) => {
+router.get("/pets", authUniversal, async (req, res) => {
     try {
         const pets = await petService.getAllPets(req.user);
         res.json(pets);
@@ -69,7 +69,7 @@ router.get("/pets", authMiddleware, async (req, res) => {
  */
 router.post("/pets",
     [
-        authMiddleware,
+        authUniversal,
         check('name').not().isEmpty().withMessage('El nombre es requerido'),
         check('type').not().isEmpty().withMessage('El tipo es requerido')
     ], 
@@ -125,7 +125,7 @@ router.post("/pets",
  *       404:
  *         description: Mascota no encontrada
  */
-router.put("/pets/:petId", authMiddleware, async (req, res) => {
+router.put("/pets/:petId", authUniversal, async (req, res) => {
     try {
         const updatedPet = await petService.updatePet(req.params.petId, req.body, req.user._id);
         res.json(updatedPet);
@@ -155,7 +155,7 @@ router.put("/pets/:petId", authMiddleware, async (req, res) => {
  *       404:
  *         description: Mascota no encontrada
  */
-router.delete('/pets/:petId', authMiddleware, async (req, res) => {
+router.delete('/pets/:petId', authUniversal, async (req, res) => {
     try {
         const result = await petService.deletePet(req.params.petId, req.user._id);
         res.json(result);
@@ -229,7 +229,7 @@ router.delete('/pets/:petId', authMiddleware, async (req, res) => {
  *       404:
  *         description: Mascota no encontrada
  */
-router.post('/mascotas/:id/alimentar', authMiddleware, async (req, res) => {
+router.post('/mascotas/:id/alimentar', authUniversal, async (req, res) => {
     try {
         // Lógica de alimentar (puedes personalizar)
         const pet = await petService.alimentarPet(req.params.id, req.user._id);
@@ -269,7 +269,7 @@ router.post('/mascotas/:id/alimentar', authMiddleware, async (req, res) => {
  *       404:
  *         description: Mascota no encontrada
  */
-router.post('/mascotas/:id/banar', authMiddleware, async (req, res) => {
+router.post('/mascotas/:id/banar', authUniversal, async (req, res) => {
     try {
         const pet = await petService.banarPet(req.params.id, req.user._id);
         res.json({ mensaje: 'Mascota bañada con éxito', estado: pet.estado });
@@ -308,7 +308,7 @@ router.post('/mascotas/:id/banar', authMiddleware, async (req, res) => {
  *       404:
  *         description: Mascota no encontrada
  */
-router.post('/mascotas/:id/pasear', authMiddleware, async (req, res) => {
+router.post('/mascotas/:id/pasear', authUniversal, async (req, res) => {
     try {
         const pet = await petService.pasearPet(req.params.id, req.user._id);
         res.json({ mensaje: 'Mascota paseada con éxito', estado: pet.estado });
@@ -347,7 +347,7 @@ router.post('/mascotas/:id/pasear', authMiddleware, async (req, res) => {
  *       404:
  *         description: Mascota no encontrada
  */
-router.post('/mascotas/:id/jugar', authMiddleware, async (req, res) => {
+router.post('/mascotas/:id/jugar', authUniversal, async (req, res) => {
     try {
         const pet = await petService.jugarPet(req.params.id, req.user._id);
         res.json({ mensaje: 'Mascota jugada con éxito', estado: pet.estado });
@@ -386,7 +386,7 @@ router.post('/mascotas/:id/jugar', authMiddleware, async (req, res) => {
  *       404:
  *         description: Mascota no encontrada
  */
-router.post('/mascotas/:id/curar', authMiddleware, async (req, res) => {
+router.post('/mascotas/:id/curar', authUniversal, async (req, res) => {
     try {
         const pet = await petService.curarPet(req.params.id, req.user._id);
         res.json({ mensaje: 'Mascota curada con éxito', estado: pet.estado });
@@ -425,7 +425,7 @@ router.post('/mascotas/:id/curar', authMiddleware, async (req, res) => {
  *       404:
  *         description: Mascota no encontrada
  */
-router.get('/mascotas/:id/estado', authMiddleware, async (req, res) => {
+router.get('/mascotas/:id/estado', authUniversal, async (req, res) => {
     try {
         const estado = await petService.getEstadoPet(req.params.id, req.user._id);
         res.json(estado);
