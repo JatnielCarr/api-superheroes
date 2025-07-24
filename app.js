@@ -9,10 +9,12 @@ import adminController from './controllers/adminController.js';
 import auth from './middleware/auth.js';
 import bodyParser from 'body-parser';
 import { loginHero } from './controllers/heroControllerAuth.js';
+import cors from 'cors';
 
 const app = express();
 
 app.use(bodyParser.json());
+app.use(cors({ origin: '*', credentials: true }));
 
 const swaggerDefinition = {
   openapi: '3.0.0',
@@ -22,10 +24,6 @@ const swaggerDefinition = {
     description: 'Documentación de la API de Superhéroes con Swagger',
   },
   servers: [
-    {
-      url: 'https://api-superheroes-production-c38b.up.railway.app/api',
-      description: 'Railway Deploy',
-    },
     {
       url: 'http://localhost:3001/api',
       description: 'Servidor local',
