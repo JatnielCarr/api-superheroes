@@ -25,6 +25,10 @@ const swaggerDefinition = {
   },
   servers: [
     {
+      url: 'https://api-superheroes-lo0q.onrender.com/api',
+      description: 'Render Deploy',
+    },
+    {
       url: 'http://localhost:3001/api',
       description: 'Servidor local',
     },
